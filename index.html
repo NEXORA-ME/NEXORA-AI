@@ -263,10 +263,8 @@ async function sendChat(){
 
     addMessage(reply,"ai",isCode);
 
-    // Only speak if message contains code or specific keywords
-    if(isCode){
-      speak(reply);
-    }
+  // No voice output anymore
+// if(isCode){ speak(reply); } → removed
 
     chatHistory.push({type:"ai",text:reply});
   }catch(e){console.error(e);}
@@ -297,3 +295,4 @@ document.getElementById("userInput").addEventListener("keypress",e=>{if(e.key===
 </script>
 </body>
 </html>
+
