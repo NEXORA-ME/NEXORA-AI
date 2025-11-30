@@ -176,7 +176,7 @@ header {
 <div id="chatBox"></div>
 
 <div class="bottom">
-  <input id="userInput" placeholder="Message AI...">
+  <input id="userInput" placeholder="What are you going to make today?">
   <button id="sendBtn">⬆</button>
 </div>
 
@@ -202,15 +202,17 @@ closeSidebar.onclick = () => {
 };
 
 // Add message
-function addMessage(text,type){
+function addMessage(text,type,isCode=false){
   const div=document.createElement("div");
   div.className=`message ${type}`;
-  if(text.includes("```")){
+  
+  if(isCode || text.includes("```")){
     const codeContent = text.replace(/```/g,"");
     const codeDiv = document.createElement("div");
     codeDiv.className="codeBlock";
     codeDiv.innerText = codeContent;
 
+    // Copy/Edit buttons only for code
     const btnDiv = document.createElement("div");
     btnDiv.className="codeButtons";
     const copyBtn = document.createElement("button");
@@ -222,6 +224,7 @@ function addMessage(text,type){
     btnDiv.appendChild(copyBtn);
     btnDiv.appendChild(editBtn);
     codeDiv.appendChild(btnDiv);
+
     div.appendChild(codeDiv);
   } else {
     div.innerText=text;
@@ -253,10 +256,19 @@ async function sendChat(){
       body:JSON.stringify({message:msg})
     });
     const data=await res.json();
-    let reply = data.reply;
-    addMessage(reply,"ai");
+    let reply = data.reply || "Sorry, I couldn't respond.";
+    
+    // Detect if response contains code
+    const isCode = reply.includes("```");
+
+    addMessage(reply,"ai",isCode);
+
+    // Only speak if message contains code or specific keywords
+    if(isCode){
+      speak(reply);
+    }
+
     chatHistory.push({type:"ai",text:reply});
-    speak(reply);
   }catch(e){console.error(e);}
 }
 
