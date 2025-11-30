@@ -5,7 +5,9 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Adam AI Assistant</title>
 
-<meta name="description" content="Adam AI Assistant ChatGPT style website. Speak and interact with AI.">
+  <meta name="google-site-verification" content="qLKwdVfAn0qgmnyOxefdD3EfWTbYMth60QPmLUJcww4" />
+
+<meta name="description" content="Adam AI Assistant ChatGPT style website. Type and interact with AI.">
 <meta name="keywords" content="AI, ChatGPT, AI assistant, code generator, chatbot, Adam AI">
 <meta name="author" content="Your Name">
 <meta name="robots" content="index, follow">
@@ -48,18 +50,9 @@ header{background:#2a2a2a;padding:20px;text-align:center;font-size:28px;position
 
 /* INPUT AREA */
 .bottom{display:flex;padding:12px;background:#2a2a2a;position:fixed;bottom:0;width:100%;align-items:center;}
-#voiceBtn{width:50px;height:50px;margin-right:10px;border-radius:50%;border:none;background:#0ff;color:#000;font-size:28px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all 0.3s;}
-#voiceBtn.active{box-shadow:0 0 15px #0ff; animation:glow 1.5s infinite;}
-@keyframes glow{0%{box-shadow:0 0 5px #0ff}50%{box-shadow:0 0 25px #0ff}100%{box-shadow:0 0 5px #0ff}}
 #userInput{flex:1;padding:18px;border-radius:25px;border:none;background:#333;color:#e0e0e0;font-size:18px;}
 #sendBtn{width:55px;height:55px;margin-left:10px;border-radius:50%;border:none;background:#333;color:#e0e0e0;font-size:24px;cursor:pointer;transition: transform 0.3s, box-shadow 0.3s;}
 #sendBtn:hover{transform:scale(1.2);box-shadow:0 0 15px #555;}
-
-/* Adam blue circle */
-#adamCircle{position:fixed;bottom:120px;left:20px;width:80px;height:80px;background:#0ff;border-radius:50%;display:none;align-items:center;justify-content:center;color:#000;font-weight:bold;font-size:20px;box-shadow:0 0 15px #0ff;}
-#aiVoiceToggle{position:fixed;bottom:120px;right:20px;width:120px;height:45px;background:#333;color:#e0e0e0;border-radius:25px;display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:16px;box-shadow:0 0 10px #444;transition:all 0.3s;}
-#aiVoiceToggle.on{background:#0ff;color:#000;}
-#aiVoiceToggle:hover{transform:scale(1.05);box-shadow:0 0 20px #555;}
 </style>
 </head>
 <body>
@@ -78,62 +71,21 @@ header{background:#2a2a2a;padding:20px;text-align:center;font-size:28px;position
 <div id="chatBox"></div>
 
 <div class="bottom">
-  <button id="voiceBtn" title="Activate Adam">🎤</button>
   <input id="userInput" placeholder="What are you going to make today?">
   <button id="sendBtn">⬆</button>
 </div>
 
-<div id="adamCircle">Adam</div>
-<div id="aiVoiceToggle" class="on">AI Voice: On</div>
-
 <script>
-const BACKEND = "http://localhost:5000";
+const BACKEND = "http://localhost:5000"; // Your backend URL
 let chatHistory = [];
-let voiceInputEnabled = false;
-let voiceOutputEnabled = true;
 
-// Sidebar
+// Sidebar toggle
 const sidebar=document.getElementById("sidebar");
 const chatBox=document.getElementById("chatBox");
 const logoBtn=document.getElementById("logoBtn");
 const closeSidebar=document.getElementById("closeSidebar");
 logoBtn.onclick=()=>{sidebar.style.width="250px";chatBox.style.marginLeft="250px";};
 closeSidebar.onclick=()=>{sidebar.style.width="0";chatBox.style.marginLeft="0";};
-
-// Adam mic
-const voiceBtn=document.getElementById("voiceBtn");
-const adamCircle=document.getElementById("adamCircle");
-const aiVoiceToggle=document.getElementById("aiVoiceToggle");
-
-voiceBtn.onclick=()=>{
-  voiceInputEnabled = !voiceInputEnabled;
-  voiceBtn.classList.toggle("active",voiceInputEnabled);
-  adamCircle.style.display = voiceInputEnabled ? "flex" : "none";
-  if(voiceInputEnabled && recognition){ recognition.start(); }
-  else if(recognition){ recognition.stop(); }
-};
-
-// AI Voice toggle
-aiVoiceToggle.onclick=()=>{
-  voiceOutputEnabled = !voiceOutputEnabled;
-  aiVoiceToggle.classList.toggle("on",voiceOutputEnabled);
-  aiVoiceToggle.innerText = voiceOutputEnabled ? "AI Voice: On" : "AI Voice: Off";
-};
-
-// Speech recognition
-let recognition;
-if(window.SpeechRecognition || window.webkitSpeechRecognition){
-  recognition = new (window.SpeechRecognition || window.webkitSpeechRecognition)();
-  recognition.lang="hi-IN";
-  recognition.continuous=false;
-  recognition.interimResults=false;
-  recognition.onresult=(e)=>{
-    const msg=e.results[0][0].transcript;
-    document.getElementById("userInput").value=msg;
-    sendChat();
-  };
-  recognition.onend=()=>{ if(voiceInputEnabled) recognition.start(); };
-}
 
 // Add message
 function addMessage(text,type,isCode=false){
@@ -169,22 +121,17 @@ function addMessage(text,type,isCode=false){
       const span=document.createElement("span"); div.appendChild(span);
       let i = 0;
       const interval = setInterval(()=>{
-        span.innerText += text.charAt(i); // innerText preserves spaces
+        span.innerText += text.charAt(i); // Preserve spaces
         i++;
         if(i>=text.length){ clearInterval(interval); }
       },30);
-
-      if(voiceOutputEnabled){
-        const utter=new SpeechSynthesisUtterance(text);
-        utter.lang="hi-IN";
-        speechSynthesis.speak(utter);
-      }
-    },800); // simulate thinking
+    },800);
   }
 
   chatBox.appendChild(div);
   chatBox.scrollTop=chatBox.scrollHeight;
 
+  // Add to history sidebar
   const historyList=document.getElementById("historyList");
   const li=document.createElement("li");
   li.innerText=(type==="user"?"You: ":"Adam: ")+text.replace(/```/g,"");
@@ -214,7 +161,7 @@ async function sendChat(){
   }catch(e){console.error(e);}
 }
 
-// Send button & Enter
+// Send button & Enter key
 document.getElementById("sendBtn").onclick=sendChat;
 document.getElementById("userInput").addEventListener("keypress",e=>{if(e.key==="Enter") sendChat();});
 </script>
