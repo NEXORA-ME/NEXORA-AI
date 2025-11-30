@@ -7,7 +7,6 @@
 
   <meta name="google-site-verification" content="qLKwdVfAn0qgmnyOxefdD3EfWTbYMth60QPmLUJcww4" />
 
-<!-- SEO -->
 <meta name="description" content="Adam AI Assistant ChatGPT style website. Speak and interact with AI.">
 <meta name="keywords" content="AI, ChatGPT, AI assistant, code generator, chatbot, Adam AI">
 <meta name="author" content="Your Name">
@@ -38,7 +37,10 @@ header{background:#2a2a2a;padding:20px;text-align:center;font-size:28px;position
 .ai{margin-right:auto;}
 
 /* Loading animation */
-.loading{width:10px;height:10px;background:#0ff;border-radius:50%;display:inline-block;margin:0 3px;animation:blink 1s infinite;}
+.loading{display:flex;justify-content:flex-start;margin:0 5px;}
+.loading span{width:10px;height:10px;background:#0ff;border-radius:50%;display:inline-block;margin:0 3px;animation:blink 1.2s infinite;}
+.loading span:nth-child(2){animation-delay:0.2s;}
+.loading span:nth-child(3){animation-delay:0.4s;}
 @keyframes blink{0%,80%,100%{opacity:0.3;}40%{opacity:1;}}
 
 /* CODE BLOCK */
@@ -57,6 +59,9 @@ header{background:#2a2a2a;padding:20px;text-align:center;font-size:28px;position
 
 /* Adam blue circle */
 #adamCircle{position:fixed;bottom:120px;left:20px;width:80px;height:80px;background:#0ff;border-radius:50%;display:none;align-items:center;justify-content:center;color:#000;font-weight:bold;font-size:20px;box-shadow:0 0 15px #0ff;}
+#aiVoiceToggle{position:fixed;bottom:120px;right:20px;width:120px;height:45px;background:#333;color:#e0e0e0;border-radius:25px;display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:16px;box-shadow:0 0 10px #444;transition:all 0.3s;}
+#aiVoiceToggle.on{background:#0ff;color:#000;}
+#aiVoiceToggle:hover{transform:scale(1.05);box-shadow:0 0 20px #555;}
 </style>
 </head>
 <body>
@@ -81,132 +86,140 @@ header{background:#2a2a2a;padding:20px;text-align:center;font-size:28px;position
 </div>
 
 <div id="adamCircle">Adam</div>
+<div id="aiVoiceToggle" class="on">AI Voice: On</div>
 
 <script>
 const BACKEND = "http://localhost:5000";
 let chatHistory = [];
-let voiceEnabled = false;
-let recognizing = false;
+let voiceInputEnabled = false;
+let voiceOutputEnabled = true;
 
-// Sidebar toggle
-const sidebar = document.getElementById("sidebar");
-const chatBox = document.getElementById("chatBox");
-const logoBtn = document.getElementById("logoBtn");
-const closeSidebar = document.getElementById("closeSidebar");
-logoBtn.onclick = () => { sidebar.style.width = "250px"; chatBox.style.marginLeft = "250px"; };
-closeSidebar.onclick = () => { sidebar.style.width = "0"; chatBox.style.marginLeft = "0"; };
+// Sidebar
+const sidebar=document.getElementById("sidebar");
+const chatBox=document.getElementById("chatBox");
+const logoBtn=document.getElementById("logoBtn");
+const closeSidebar=document.getElementById("closeSidebar");
+logoBtn.onclick=()=>{sidebar.style.width="250px";chatBox.style.marginLeft="250px";};
+closeSidebar.onclick=()=>{sidebar.style.width="0";chatBox.style.marginLeft="0";};
 
-// Adam mic toggle
-const voiceBtn = document.getElementById("voiceBtn");
-const adamCircle = document.getElementById("adamCircle");
+// Adam mic
+const voiceBtn=document.getElementById("voiceBtn");
+const adamCircle=document.getElementById("adamCircle");
+const aiVoiceToggle=document.getElementById("aiVoiceToggle");
 
-voiceBtn.onclick = () => {
-  recognizing = !recognizing;
-  voiceBtn.classList.toggle("active", recognizing);
-  adamCircle.style.display = recognizing ? "flex" : "none";
-  if(recognizing) startRecognition();
+voiceBtn.onclick=()=>{
+  voiceInputEnabled = !voiceInputEnabled;
+  voiceBtn.classList.toggle("active",voiceInputEnabled);
+  adamCircle.style.display = voiceInputEnabled ? "flex" : "none";
+  if(voiceInputEnabled && recognition){ recognition.start(); }
+  else if(recognition){ recognition.stop(); }
+};
+
+// AI Voice toggle
+aiVoiceToggle.onclick=()=>{
+  voiceOutputEnabled = !voiceOutputEnabled;
+  aiVoiceToggle.classList.toggle("on",voiceOutputEnabled);
+  aiVoiceToggle.innerText = voiceOutputEnabled ? "AI Voice: On" : "AI Voice: Off";
 };
 
 // Speech recognition
 let recognition;
 if(window.SpeechRecognition || window.webkitSpeechRecognition){
   recognition = new (window.SpeechRecognition || window.webkitSpeechRecognition)();
-  recognition.lang = "hi-IN"; // Hindi
-  recognition.continuous = false;
-  recognition.interimResults = false;
-
-  recognition.onresult = (e)=>{
-    const msg = e.results[0][0].transcript;
-    document.getElementById("userInput").value = msg;
+  recognition.lang="hi-IN";
+  recognition.continuous=false;
+  recognition.interimResults=false;
+  recognition.onresult=(e)=>{
+    const msg=e.results[0][0].transcript;
+    document.getElementById("userInput").value=msg;
     sendChat();
   };
-  recognition.onend = ()=>{ if(recognizing) recognition.start(); };
+  recognition.onend=()=>{ if(voiceInputEnabled) recognition.start(); };
 }
 
 // Add message
 function addMessage(text,type,isCode=false){
-  const div = document.createElement("div");
-  div.className = `message ${type}`;
+  const div=document.createElement("div");
+  div.className=`message ${type}`;
 
   if(isCode || text.includes("```")){
-    const codeContent = text.replace(/```/g,"");
-    const codeDiv = document.createElement("div");
-    codeDiv.className = "codeBlock";
-    codeDiv.innerText = codeContent;
+    const codeContent=text.replace(/```/g,"");
+    const codeDiv=document.createElement("div");
+    codeDiv.className="codeBlock";
+    codeDiv.innerText=codeContent;
 
-    const btnDiv = document.createElement("div");
+    const btnDiv=document.createElement("div");
     btnDiv.className="codeButtons";
-    const copyBtn=document.createElement("button");
-    copyBtn.innerText="Copy";
-    copyBtn.onclick = ()=>{navigator.clipboard.writeText(codeContent);}
-    const editBtn=document.createElement("button");
-    editBtn.innerText="Edit";
-    editBtn.onclick = ()=>{document.getElementById("userInput").value=codeContent; document.getElementById("userInput").focus();}
-    btnDiv.appendChild(copyBtn);
-    btnDiv.appendChild(editBtn);
-    codeDiv.appendChild(btnDiv);
+    const copyBtn=document.createElement("button"); copyBtn.innerText="Copy";
+    copyBtn.onclick=()=>{navigator.clipboard.writeText(codeContent);}
+    const editBtn=document.createElement("button"); editBtn.innerText="Edit";
+    editBtn.onclick=()=>{document.getElementById("userInput").value=codeContent; document.getElementById("userInput").focus();}
+    btnDiv.appendChild(copyBtn); btnDiv.appendChild(editBtn); codeDiv.appendChild(btnDiv);
     div.appendChild(codeDiv);
   } else {
-    // typing animation
-    const span = document.createElement("span");
-    let i=0;
-    div.appendChild(span);
-    const interval = setInterval(()=>{
-      span.innerText += text[i];
-      i++;
-      if(i>=text.length){clearInterval(interval);}
-    },30);
-    if(recognizing){
-      const utter = new SpeechSynthesisUtterance(text);
-      utter.lang = "hi-IN";
-      speechSynthesis.speak(utter);
-    }
+    // Loading animation
+    const loadingDiv=document.createElement("div");
+    loadingDiv.className="loading";
+    for(let i=0;i<3;i++){ const dot=document.createElement("span"); loadingDiv.appendChild(dot); }
+    div.appendChild(loadingDiv);
+    chatBox.appendChild(div);
+    chatBox.scrollTop = chatBox.scrollHeight;
+
+    // After delay, show typed text
+    setTimeout(()=>{
+      div.removeChild(loadingDiv);
+      const span=document.createElement("span"); div.appendChild(span);
+      let i = 0;
+      const interval = setInterval(()=>{
+        span.innerHTML += text.charAt(i)==='\n'?'<br>':text.charAt(i);
+        i++;
+        if(i>=text.length){ clearInterval(interval); }
+      },30);
+
+      if(voiceOutputEnabled){
+        const utter=new SpeechSynthesisUtterance(text);
+        utter.lang="hi-IN";
+        speechSynthesis.speak(utter);
+      }
+    },800); // simulate thinking
   }
 
   chatBox.appendChild(div);
-  chatBox.scrollTop = chatBox.scrollHeight;
+  chatBox.scrollTop=chatBox.scrollHeight;
 
-  const historyList = document.getElementById("historyList");
-  const li = document.createElement("li");
-  li.innerText = (type==="user"?"You: ":"Adam: ") + text.replace(/```/g,"");
-  li.onclick = ()=>{document.getElementById("userInput").value=text.replace(/```/g,""); sendChat();}
+  const historyList=document.getElementById("historyList");
+  const li=document.createElement("li");
+  li.innerText=(type==="user"?"You: ":"Adam: ")+text.replace(/```/g,"");
+  li.onclick=()=>{document.getElementById("userInput").value=text.replace(/```/g,""); sendChat();}
   historyList.appendChild(li);
 }
 
 // Send chat
 async function sendChat(){
   const input=document.getElementById("userInput");
-  const msg=input.value.trim();
-  if(!msg) return;
+  const msg=input.value.trim(); if(!msg) return;
   addMessage(msg,"user");
   chatHistory.push({type:"user",text:msg});
   input.value="";
 
   try{
-    const res = await fetch(BACKEND+"/api/chat",{
+    const res=await fetch(BACKEND+"/api/chat",{
       method:"POST",
       headers:{"Content-Type":"application/json"},
       body:JSON.stringify({message:msg})
     });
-    const data = await res.json();
-    let reply = data.reply || "मुझे समझ नहीं आया।";
-    const isCode = reply.includes("```");
+    const data=await res.json();
+    let reply=data.reply || "मुझे समझ नहीं आया।";
+    const isCode=reply.includes("```");
     addMessage(reply,"ai",isCode);
     chatHistory.push({type:"ai",text:reply});
   }catch(e){console.error(e);}
 }
 
-// Start recognition
-function startRecognition(){
-  if(recognition && recognizing){
-    recognition.start();
-  }
-}
-
-// Send button & Enter key
+// Send button & Enter
 document.getElementById("sendBtn").onclick=sendChat;
 document.getElementById("userInput").addEventListener("keypress",e=>{if(e.key==="Enter") sendChat();});
-
 </script>
+
 </body>
 </html>
