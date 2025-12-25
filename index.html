@@ -17,7 +17,6 @@
   --muted:#9a9a9a;
   --accent:#10a37f;
 }
-
 *{box-sizing:border-box;font-family:Inter}
 
 body{
@@ -31,19 +30,17 @@ body{
 
 /* SIDEBAR */
 #sidebar{
-  width:220px; /* FIXED */
+  width:220px;
   background:var(--sidebar);
   border-right:1px solid var(--border);
   display:flex;
   flex-direction:column;
 }
-
 #sidebar h1{
   font-size:16px;
   padding:14px;
   margin:0;
 }
-
 #newChat{
   margin:0 10px 10px;
   padding:9px;
@@ -53,13 +50,11 @@ body{
   border-radius:6px;
   cursor:pointer;
 }
-
 #history{
   flex:1;
   overflow:auto;
   padding:6px;
 }
-
 .history-item{
   padding:8px;
   font-size:13px;
@@ -67,7 +62,6 @@ body{
   border-radius:6px;
   cursor:pointer;
 }
-
 .history-item.active,
 .history-item:hover{
   background:var(--panel);
@@ -80,7 +74,6 @@ body{
   display:flex;
   flex-direction:column;
 }
-
 #topbar{
   height:50px;
   border-bottom:1px solid var(--border);
@@ -89,7 +82,6 @@ body{
   justify-content:center;
   position:relative;
 }
-
 #menu{
   position:absolute;
   left:14px;
@@ -104,20 +96,17 @@ body{
   overflow:auto;
   padding:22px;
 }
-
 .msg{
   max-width:760px;
   margin-bottom:14px;
   line-height:1.6;
 }
-
 .user{
   margin-left:auto;
   background:#1f1f1f;
   padding:12px;
   border-radius:12px 12px 0 12px;
 }
-
 .ai{
   background:#161616;
   border:1px solid var(--border);
@@ -130,7 +119,6 @@ body{
   border-top:1px solid var(--border);
   padding:12px;
 }
-
 #inputWrap{
   max-width:760px;
   margin:auto;
@@ -140,7 +128,6 @@ body{
   border-radius:14px;
   padding:10px;
 }
-
 #input{
   flex:1;
   background:none;
@@ -149,7 +136,6 @@ body{
   font-size:15px;
   outline:none;
 }
-
 #send{
   background:var(--accent);
   border:none;
@@ -202,23 +188,28 @@ body{
 </div>
 
 <script>
+/* ================= CONFIG ================= */
 const BACKEND = "https://backend-b80q.onrender.com/api/chat";
 
+/* ================= ELEMENTS ================= */
 const messages = document.getElementById("messages");
 const input = document.getElementById("input");
 const historyDiv = document.getElementById("history");
 const sidebar = document.getElementById("sidebar");
 
+/* ================= STATE ================= */
 let chats = JSON.parse(localStorage.getItem("nexora_chats")) || [];
 let current = -1;
 
-/* ===== INIT ===== */
-if(chats.length === 0) createNewChat();
-else current = chats.length - 1;
-
+/* ================= INIT ================= */
+if(chats.length === 0){
+  createNewChat();
+}else{
+  current = chats.length - 1;
+}
 render();
 
-/* ===== UI ===== */
+/* ================= EVENTS ================= */
 document.getElementById("menu").onclick =
   () => sidebar.classList.toggle("show");
 
@@ -232,7 +223,7 @@ input.addEventListener("keydown", e=>{
   }
 });
 
-/* ===== CHAT LOGIC ===== */
+/* ================= LOGIC ================= */
 function createNewChat(){
   chats.push({
     title: "New chat",
@@ -243,7 +234,7 @@ function createNewChat(){
   render();
 }
 
-function send(){
+async function send(){
   const text = input.value.trim();
   if(!text) return;
 
@@ -254,47 +245,39 @@ function send(){
   chat.messages.push({ role:"user", text });
 
   if(chat.title === "New chat"){
-    chat.title = text.slice(0,50) + (text.length > 50 ? "…" : "");
+    chat.title = text.slice(0, 50) + (text.length > 50 ? "…" : "");
   }
 
-  render();
-  getReply(text);
-}
-
-async function getReply(text){
-  const chat = chats[current];
-  const aiMsg = { role:"ai", text:"" };
-  chat.messages.push(aiMsg);
   render();
 
   try{
     const res = await fetch(BACKEND,{
       method:"POST",
       headers:{ "Content-Type":"application/json" },
-      body:JSON.stringify({ message:text })
+      body: JSON.stringify({ message: text })
     });
+
     const data = await res.json();
-    type(aiMsg, data.reply || "Error");
-  }catch{
-    aiMsg.text = "Connection error";
+
+    chat.messages.push({
+      role:"ai",
+      text: data.reply || "No reply"
+    });
+
+    save();
+    render();
+
+  }catch(err){
+    chat.messages.push({
+      role:"ai",
+      text:"❌ Connection error"
+    });
     render();
   }
 }
 
-function type(msg, text){
-  let i = 0;
-  const t = setInterval(()=>{
-    msg.text += text[i++];
-    render(false);
-    if(i >= text.length){
-      clearInterval(t);
-      save();
-    }
-  },15);
-}
-
-/* ===== RENDER ===== */
-function render(saveFlag=true){
+/* ================= RENDER ================= */
+function render(){
   messages.innerHTML = "";
   historyDiv.innerHTML = "";
 
@@ -317,7 +300,6 @@ function render(saveFlag=true){
   });
 
   messages.scrollTop = messages.scrollHeight;
-  if(saveFlag) save();
 }
 
 function save(){
