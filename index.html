@@ -1,8 +1,8 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>NEXORA</title>
 
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
@@ -29,9 +29,9 @@ body{
   overflow:hidden;
 }
 
-/* ===== SIDEBAR ===== */
+/* SIDEBAR */
 #sidebar{
-  width:260px;
+  width:220px; /* FIXED */
   background:var(--sidebar);
   border-right:1px solid var(--border);
   display:flex;
@@ -39,49 +39,50 @@ body{
 }
 
 #sidebar h1{
-  font-size:18px;
-  padding:16px;
+  font-size:16px;
+  padding:14px;
   margin:0;
 }
 
 #newChat{
-  margin:0 12px 12px;
-  padding:10px;
+  margin:0 10px 10px;
+  padding:9px;
   background:none;
   border:1px solid var(--border);
   color:white;
-  border-radius:8px;
+  border-radius:6px;
   cursor:pointer;
 }
 
 #history{
   flex:1;
   overflow:auto;
-  padding:8px;
+  padding:6px;
 }
 
 .history-item{
-  padding:10px;
-  font-size:14px;
+  padding:8px;
+  font-size:13px;
   color:var(--muted);
   border-radius:6px;
   cursor:pointer;
 }
+
+.history-item.active,
 .history-item:hover{
   background:var(--panel);
   color:white;
 }
 
-/* ===== MAIN ===== */
+/* MAIN */
 #main{
   flex:1;
   display:flex;
   flex-direction:column;
 }
 
-/* TOP BAR */
 #topbar{
-  height:52px;
+  height:50px;
   border-bottom:1px solid var(--border);
   display:flex;
   align-items:center;
@@ -91,22 +92,22 @@ body{
 
 #menu{
   position:absolute;
-  left:16px;
+  left:14px;
   font-size:20px;
   cursor:pointer;
   display:none;
 }
 
-/* CHAT AREA */
+/* CHAT */
 #messages{
   flex:1;
   overflow:auto;
-  padding:24px;
+  padding:22px;
 }
 
 .msg{
   max-width:760px;
-  margin-bottom:16px;
+  margin-bottom:14px;
   line-height:1.6;
 }
 
@@ -146,16 +147,7 @@ body{
   border:none;
   color:white;
   font-size:15px;
-  resize:none;
   outline:none;
-}
-
-.icon{
-  background:none;
-  border:none;
-  color:var(--muted);
-  font-size:20px;
-  cursor:pointer;
 }
 
 #send{
@@ -169,39 +161,11 @@ body{
   cursor:pointer;
 }
 
-/* FOOTER */
-#footer{
-  text-align:center;
-  font-size:11px;
-  color:var(--muted);
-  padding:6px;
-  border-top:1px solid var(--border);
-}
-#footer button{
-  background:none;
-  border:none;
-  color:var(--accent);
-  font-size:11px;
-  cursor:pointer;
-}
-
-/* COOKIES */
-#cookies{
-  position:fixed;
-  inset:0;
-  background:black;
-  color:white;
-  display:none;
-  align-items:center;
-  justify-content:center;
-  flex-direction:column;
-}
-
 /* MOBILE */
 @media(max-width:768px){
   #sidebar{
     position:fixed;
-    left:-260px;
+    left:-220px;
     top:0;
     height:100%;
     z-index:10;
@@ -215,44 +179,26 @@ body{
 
 <body>
 
-<!-- SIDEBAR -->
 <div id="sidebar">
   <h1>NEXORA</h1>
   <button id="newChat">➕ New chat</button>
   <div id="history"></div>
 </div>
 
-<!-- MAIN -->
 <div id="main">
   <div id="topbar">
     <span id="menu">☰</span>
     <strong>NEXORA</strong>
   </div>
 
-  <div id="messages">
-    <div class="msg ai">How can I help you today?</div>
-  </div>
+  <div id="messages"></div>
 
   <div id="inputBar">
     <div id="inputWrap">
-      <input type="file" id="file" hidden />
-      <button class="icon" onclick="file.click()">＋</button>
-      <textarea id="input" rows="1" placeholder="Ask NEXORA…"></textarea>
+      <input id="input" placeholder="Ask NEXORA…">
       <button id="send">➤</button>
     </div>
   </div>
-
-  <div id="footer">
-    NEXORA can make mistakes. Check important info.
-    <button onclick="openCookies()">See cookies</button>
-  </div>
-</div>
-
-<!-- COOKIES -->
-<div id="cookies">
-  <h2>Cookies</h2>
-  <p>abcef</p>
-  <button onclick="closeCookies()">Back</button>
 </div>
 
 <script>
@@ -260,77 +206,123 @@ const BACKEND = "https://backend-b80q.onrender.com/api/chat";
 
 const messages = document.getElementById("messages");
 const input = document.getElementById("input");
-const sendBtn = document.getElementById("send");
+const historyDiv = document.getElementById("history");
 const sidebar = document.getElementById("sidebar");
-const history = document.getElementById("history");
 
 let chats = JSON.parse(localStorage.getItem("nexora_chats")) || [];
-let current = chats.length - 1;
+let current = -1;
 
-document.getElementById("menu").onclick = () =>
-  sidebar.classList.toggle("show");
+/* ===== INIT ===== */
+if(chats.length === 0) createNewChat();
+else current = chats.length - 1;
 
-document.getElementById("newChat").onclick = () => {
-  chats.push([]);
-  current = chats.length - 1;
-  save();
-};
+render();
 
-input.addEventListener("keydown", e => {
-  if (e.key === "Enter" && !e.shiftKey) {
+/* ===== UI ===== */
+document.getElementById("menu").onclick =
+  () => sidebar.classList.toggle("show");
+
+document.getElementById("newChat").onclick = createNewChat;
+document.getElementById("send").onclick = send;
+
+input.addEventListener("keydown", e=>{
+  if(e.key === "Enter"){
     e.preventDefault();
     send();
   }
 });
 
-sendBtn.onclick = send;
+/* ===== CHAT LOGIC ===== */
+function createNewChat(){
+  chats.push({
+    title: "New chat",
+    messages: []
+  });
+  current = chats.length - 1;
+  save();
+  render();
+}
 
-async function send(){
+function send(){
   const text = input.value.trim();
   if(!text) return;
+
   input.value = "";
 
-  addMsg(text,"user");
+  const chat = chats[current];
 
-  const bot = addMsg("","ai");
+  chat.messages.push({ role:"user", text });
+
+  if(chat.title === "New chat"){
+    chat.title = text.slice(0,50) + (text.length > 50 ? "…" : "");
+  }
+
+  render();
+  getReply(text);
+}
+
+async function getReply(text){
+  const chat = chats[current];
+  const aiMsg = { role:"ai", text:"" };
+  chat.messages.push(aiMsg);
+  render();
 
   try{
     const res = await fetch(BACKEND,{
       method:"POST",
-      headers:{"Content-Type":"application/json"},
+      headers:{ "Content-Type":"application/json" },
       body:JSON.stringify({ message:text })
     });
     const data = await res.json();
-    typeEffect(bot, data.reply || "Error");
+    type(aiMsg, data.reply || "Error");
   }catch{
-    bot.textContent="Connection error";
+    aiMsg.text = "Connection error";
+    render();
   }
 }
 
-function addMsg(text,type){
-  const div=document.createElement("div");
-  div.className="msg "+type;
-  div.textContent=text;
-  messages.appendChild(div);
-  messages.scrollTop=messages.scrollHeight;
-  return div;
-}
-
-function typeEffect(el,text){
-  let i=0;
-  const t=setInterval(()=>{
-    el.textContent+=text[i++];
-    messages.scrollTop=messages.scrollHeight;
-    if(i>=text.length) clearInterval(t);
+function type(msg, text){
+  let i = 0;
+  const t = setInterval(()=>{
+    msg.text += text[i++];
+    render(false);
+    if(i >= text.length){
+      clearInterval(t);
+      save();
+    }
   },15);
 }
 
-function save(){
-  localStorage.setItem("nexora_chats",JSON.stringify(chats));
+/* ===== RENDER ===== */
+function render(saveFlag=true){
+  messages.innerHTML = "";
+  historyDiv.innerHTML = "";
+
+  chats.forEach((c,i)=>{
+    const h = document.createElement("div");
+    h.className = "history-item" + (i === current ? " active" : "");
+    h.textContent = c.title;
+    h.onclick = () => {
+      current = i;
+      render();
+    };
+    historyDiv.appendChild(h);
+  });
+
+  chats[current].messages.forEach(m=>{
+    const d = document.createElement("div");
+    d.className = "msg " + m.role;
+    d.textContent = m.text;
+    messages.appendChild(d);
+  });
+
+  messages.scrollTop = messages.scrollHeight;
+  if(saveFlag) save();
 }
 
-function openCookies(){cookies.style.display="flex"}
-function closeCookies(){cookies.style.display="none"}
+function save(){
+  localStorage.setItem("nexora_chats", JSON.stringify(chats));
+}
 </script>
 
 </body>
