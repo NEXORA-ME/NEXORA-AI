@@ -1,189 +1,213 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Nexora AI</title>
 
-    <link rel="stylesheet" href="style.css">
+<meta charset="UTF-8">
 
-    <!-- Markdown -->
-    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+<!-- (Optional fix: your meta redirect was incorrect, so removed) -->
 
-    <!-- Highlight.js -->
-    <link rel="stylesheet"
-    href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github-dark.min.css">
+<meta name="viewport"
+content="width=device-width, initial-scale=1.0">
 
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+<title>Nexora AI</title>
 
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="style.css">
 
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap"
-    rel="stylesheet">
+<!-- MARKDOWN -->
+<script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+
+<!-- HIGHLIGHT -->
+<link rel="stylesheet"
+href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github-dark.min.css">
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+
+<!-- FONT -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap"
+rel="stylesheet">
+
 </head>
 
 <body>
 
+<div id="overlay"></div>
+
 <div id="app">
 
-    <!-- Sidebar -->
-    <aside id="sidebar">
+<!-- SIDEBAR -->
+<aside id="sidebar">
 
-        <div class="sidebar-top">
+<div class="sidebar-top">
 
-            <button id="newChatBtn">
-                <span>+</span>
-                New Chat
-            </button>
+<div class="sidebar-header">
 
-        </div>
+<h2>Nexora</h2>
 
-        <div id="chatHistory">
-        </div>
-
-        <div class="sidebar-bottom">
-
-            <img id="sidebarUserPic" alt="User">
-
-            <div class="sidebar-user-info">
-                <div id="sidebarUserName">User</div>
-                <div class="sidebar-label">
-                    Logged In
-                </div>
-            </div>
-
-        </div>
-
-    </aside>
-
-    <!-- Main -->
-    <main id="main">
-
-        <!-- Header -->
-        <header id="header">
-
-            <div class="header-left">
-
-                <button id="mobileMenuBtn">
-                    ☰
-                </button>
-
-                <div class="logo">
-                    Nexora AI
-                </div>
-
-            </div>
-
-            <div class="header-right">
-
-                <img id="profilePic"
-                alt="Profile">
-
-            </div>
-
-        </header>
-
-        <!-- Account Menu -->
-        <div id="accountMenu">
-
-            <div id="userInfo">
-            </div>
-
-            <button id="logoutBtn">
-                Logout
-            </button>
-
-        </div>
-
-        <!-- Chat Area -->
-        <div id="chatContainer">
-
-            <!-- Welcome -->
-            <section id="welcomeScreen">
-
-                <h1>
-                    What can I help with?
-                </h1>
-
-                <div class="welcome-grid">
-
-                    <button class="suggestion">
-                        Explain Quantum Physics
-                    </button>
-
-                    <button class="suggestion">
-                        Solve Mathematics Problems
-                    </button>
-
-                    <button class="suggestion">
-                        Write JavaScript Code
-                    </button>
-
-                    <button class="suggestion">
-                        Generate Startup Ideas
-                    </button>
-
-                </div>
-
-            </section>
-
-            <!-- Messages -->
-            <div id="chat">
-            </div>
-
-        </div>
-
-        <!-- Thinking Animation -->
-        <div id="thinkingBox">
-
-            <div class="thinking-border"></div>
-
-            <div class="thinking-text">
-                Nexora is thinking...
-            </div>
-
-        </div>
-
-        <!-- Input -->
-        <div id="inputArea">
-
-            <div id="inputWrapper">
-
-                <textarea
-                    id="msgInput"
-                    placeholder="Message Nexora..."
-                    rows="1"></textarea>
-
-                <button id="sendBtn">
-                    ↑
-                </button>
-
-            </div>
-
-        </div>
-
-    </main>
+<button id="closeSidebarBtn">✕</button>
 
 </div>
 
-<!-- Message Template -->
-<template id="messageTemplate">
+<button id="newChatBtn">＋ New Chat</button>
 
-    <div class="message">
+<div class="search-box">
 
-        <div class="avatar">
-        </div>
+<input type="text" id="historySearch" placeholder="Search chats...">
 
-        <div class="message-content">
-        </div>
+</div>
 
-    </div>
+</div>
 
-</template>
+<div id="chatHistory"></div>
+
+<div class="sidebar-bottom">
+
+<div class="user-box">
+
+<img id="sidebarUserPic"
+src="https://i.pravatar.cc/150?img=12">
+
+<div>
+<div id="sidebarUserName">User</div>
+<div class="plan">Free Plan</div>
+</div>
+
+</div>
+
+<button id="settingsBtn">⚙</button>
+
+</div>
+
+</aside>
+
+<!-- MAIN -->
+<main id="main">
+
+<!-- HEADER -->
+<header id="header">
+
+<div class="header-left">
+
+<button id="mobileMenuBtn">☰</button>
+
+<div class="logo">Morado AI</div>
+
+</div>
+
+<div class="header-right">
+
+<button id="themeBtn">🌙</button>
+
+<!-- ✅ LOGOUT BUTTON ADDED -->
+<button id="logoutBtn" title="Logout">⎋</button>
+
+<img id="profilePic"
+src="https://i.pravatar.cc/150?img=12">
+
+</div>
+
+</header>
+
+<!-- SETTINGS -->
+<div id="settingsPanel">
+
+<div class="settings-top">
+
+<h2>Settings</h2>
+
+<button id="closeSettings">✕</button>
+
+</div>
+
+<div class="setting">
+
+<label>Theme</label>
+
+<select id="themeSelect">
+<option value="dark">Dark</option>
+<option value="light">Light</option>
+</select>
+
+</div>
+
+</div>
+
+<!-- CHAT -->
+<div id="chatContainer">
+
+<section id="welcomeScreen">
+
+<h1>How can I help you today?</h1>
+
+<div class="welcome-grid">
+
+<button class="suggestion">Write JavaScript Code</button>
+<button class="suggestion">Explain Quantum Physics</button>
+<button class="suggestion">Generate Startup Ideas</button>
+<button class="suggestion">Solve Mathematics Problems</button>
+
+</div>
+
+</section>
+
+<div id="chat"></div>
+
+</div>
+
+<!-- THINKING -->
+<div id="thinkingBox">
+
+<div class="typing-loader">
+<span></span><span></span><span></span>
+</div>
+
+<div class="thinking-label">
+Nexora is thinking
+</div>
+
+</div>
+
+<!-- INPUT -->
+<div id="inputArea">
+
+<div id="inputWrapper">
+
+<textarea id="msgInput"
+placeholder="Message Morado..."
+rows="1"></textarea>
+
+<div class="input-buttons">
+
+<button id="stopBtn">■</button>
+<button id="sendBtn">↑</button>
+
+</div>
+
+</div>
+
+</div>
+
+</main>
+
+</div>
+
+<!-- ✅ LOGOUT SCRIPT -->
+<script>
+document.getElementById("logoutBtn").addEventListener("click", function () {
+
+  // clear login/session data
+  localStorage.clear();
+  sessionStorage.clear();
+
+  // redirect to login page
+  window.location.href = "login.html";
+});
+</script>
 
 <script src="script.js"></script>
 
 </body>
 </html>
-```
