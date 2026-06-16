@@ -1,610 +1,590 @@
-const API = "https://backend-b80q.onrender.com";
+if (!localStorage.getItem("userEmail")) {
+  window.location.href = "login.html";
+}
+const API =
+"https://backend-b80q.onrender.com";
 
-/* =========================
-   LOGIN PROTECTION
-========================= */
+/* MARKDOWN */
 
-const email = localStorage.getItem("userEmail");
-const name = localStorage.getItem("userName");
-const pic = localStorage.getItem("userPic");
+marked.setOptions({
 
-if (!email) {
-    window.location.replace("login.html");
+breaks:true,
+
+highlight:function(code,lang){
+
+if(hljs.getLanguage(lang)){
+
+return hljs.highlight(
+code,
+{language:lang}
+).value;
+
 }
 
-/* =========================
-   DOM
-========================= */
+return hljs.highlightAuto(code).value;
 
-const profilePic = document.getElementById("profilePic");
-const sidebarUserPic = document.getElementById("sidebarUserPic");
-const sidebarUserName = document.getElementById("sidebarUserName");
+}
 
-const accountMenu = document.getElementById("accountMenu");
-const userInfo = document.getElementById("userInfo");
-const logoutBtn = document.getElementById("logoutBtn");
+});
 
-const chat = document.getElementById("chat");
-const chatHistory = document.getElementById("chatHistory");
+/* USER */
 
-const msgInput = document.getElementById("msgInput");
-const sendBtn = document.getElementById("sendBtn");
+const name =
+localStorage.getItem("userName")
+|| "User";
 
-const thinkingBox = document.getElementById("thinkingBox");
+const pic =
+localStorage.getItem("userPic")
+|| "https://i.pravatar.cc/150?img=12";
 
-const newChatBtn = document.getElementById("newChatBtn");
+document.getElementById(
+"sidebarUserName"
+).textContent = name;
 
-const mobileMenuBtn =
-document.getElementById("mobileMenuBtn");
+document.getElementById(
+"sidebarUserPic"
+).src = pic;
+
+document.getElementById(
+"profilePic"
+).src = pic;
+
+/* DOM */
 
 const sidebar =
 document.getElementById("sidebar");
 
-/* =========================
-   USER INFO
-========================= */
+const overlay =
+document.getElementById("overlay");
 
-profilePic.src = pic;
-sidebarUserPic.src = pic;
-sidebarUserName.textContent = name;
+const mobileMenuBtn =
+document.getElementById("mobileMenuBtn");
 
-userInfo.innerHTML = `
-<b>${name}</b><br>
-${email}
-`;
+const closeSidebarBtn =
+document.getElementById("closeSidebarBtn");
 
-/* =========================
-   MENU
-========================= */
+const settingsBtn =
+document.getElementById("settingsBtn");
 
-profilePic.addEventListener("click", () => {
+const settingsPanel =
+document.getElementById("settingsPanel");
 
-    accountMenu.style.display =
-        accountMenu.style.display === "block"
-        ? "none"
-        : "block";
+const closeSettings =
+document.getElementById("closeSettings");
 
-});
+const themeSelect =
+document.getElementById("themeSelect");
 
-document.addEventListener("click", (e) => {
+const msgInput =
+document.getElementById("msgInput");
 
-    if (
-        !profilePic.contains(e.target) &&
-        !accountMenu.contains(e.target)
-    ) {
-        accountMenu.style.display = "none";
-    }
+const sendBtn =
+document.getElementById("sendBtn");
 
-});
+const stopBtn =
+document.getElementById("stopBtn");
 
-logoutBtn.addEventListener("click", () => {
+const chat =
+document.getElementById("chat");
 
-    localStorage.clear();
+const thinkingBox =
+document.getElementById("thinkingBox");
 
-    window.location.href =
-    "login.html";
+const chatHistory =
+document.getElementById("chatHistory");
 
-});
+const newChatBtn =
+document.getElementById("newChatBtn");
 
-/* =========================
-   MOBILE MENU
-========================= */
+let stopGeneration = false;
 
-mobileMenuBtn?.addEventListener("click", () => {
+/* SIDEBAR */
 
-    sidebar.classList.toggle("open");
+mobileMenuBtn.addEventListener(
+"click",
+() => {
 
-});
+sidebar.classList.add("open");
+overlay.classList.add("show");
 
-/* =========================
-   AUTO RESIZE
-========================= */
-
-msgInput.addEventListener("input", () => {
-
-    msgInput.style.height = "auto";
-
-    msgInput.style.height =
-        msgInput.scrollHeight + "px";
-
-});
-
-/* =========================
-   CHAT HISTORY
-========================= */
-
-let chats =
-JSON.parse(
-localStorage.getItem("nexora_chats")
-|| "[]"
+}
 );
 
-function saveChats() {
+closeSidebarBtn.addEventListener(
+"click",
+() => {
 
-    localStorage.setItem(
-        "nexora_chats",
-        JSON.stringify(chats)
-    );
+sidebar.classList.remove("open");
+overlay.classList.remove("show");
+
+}
+);
+
+overlay.addEventListener(
+"click",
+() => {
+
+sidebar.classList.remove("open");
+overlay.classList.remove("show");
+
+}
+);
+
+/* SETTINGS */
+
+settingsBtn.addEventListener(
+"click",
+() => {
+
+settingsPanel.classList.add("open");
+
+}
+);
+
+closeSettings.addEventListener(
+"click",
+() => {
+
+settingsPanel.classList.remove("open");
+
+}
+);
+
+/* THEME */
+
+const savedTheme =
+localStorage.getItem("theme");
+
+if(savedTheme){
+
+document.body.classList.add(
+savedTheme
+);
+
+themeSelect.value =
+savedTheme;
 
 }
 
-function renderHistory() {
+themeSelect.addEventListener(
+"change",
+() => {
 
-    chatHistory.innerHTML = "";
+document.body.classList.remove(
+"dark",
+"light"
+);
 
-    chats.forEach((item, index) => {
+document.body.classList.add(
+themeSelect.value
+);
 
-        const div =
-        document.createElement("div");
+localStorage.setItem(
+"theme",
+themeSelect.value
+);
 
-        div.className =
-        "chat-history-item";
+}
+);
 
-        div.textContent =
-        item.title ||
-        `Chat ${index + 1}`;
+/* AUTO RESIZE */
 
-        div.addEventListener("click", () => {
+msgInput.addEventListener(
+"input",
+() => {
 
-            chat.innerHTML = "";
+msgInput.style.height =
+"auto";
 
-            item.messages.forEach(msg => {
+msgInput.style.height =
+msgInput.scrollHeight + "px";
 
-                renderMessage(
-                    msg.role,
-                    msg.content
-                );
+}
+);
 
-            });
+/* THINKING */
 
-        });
+function showThinking(){
 
-        chatHistory.appendChild(div);
+thinkingBox.style.display =
+"flex";
 
-    });
+}
+
+function hideThinking(){
+
+thinkingBox.style.display =
+"none";
+
+}
+
+/* RENDER */
+
+function renderMessage(
+role,
+text
+){
+
+const wrapper =
+document.createElement("div");
+
+wrapper.className =
+role === "user"
+? "message user"
+: "message assistant";
+
+wrapper.innerHTML = `
+<div class="avatar"></div>
+<div class="message-content"></div>
+`;
+
+const content =
+wrapper.querySelector(
+".message-content"
+);
+
+if(role === "assistant"){
+
+content.innerHTML =
+marked.parse(text);
+
+hljs.highlightAll();
+
+}else{
+
+content.textContent =
+text;
+
+}
+
+chat.appendChild(wrapper);
+
+scrollBottom();
+
+return content;
+
+}
+
+/* SCROLL */
+
+function scrollBottom(){
+
+chat.scrollTop =
+chat.scrollHeight;
+
+}
+
+/* HISTORY */
+
+let chats =
+JSON.parse(
+localStorage.getItem(
+"nexora_chats"
+) || "[]"
+);
+
+function saveChats(){
+
+localStorage.setItem(
+"nexora_chats",
+JSON.stringify(chats)
+);
+
+}
+
+function renderHistory(){
+
+chatHistory.innerHTML = "";
+
+chats.forEach(item => {
+
+const div =
+document.createElement("div");
+
+div.className =
+"chat-history-item";
+
+div.textContent =
+item.title;
+
+div.addEventListener(
+"click",
+() => {
+
+chat.innerHTML = "";
+
+item.messages.forEach(
+msg => {
+
+renderMessage(
+msg.role,
+msg.content
+);
+
+}
+);
+
+}
+);
+
+chatHistory.appendChild(div);
+
+});
 
 }
 
 renderHistory();
 
-/* =========================
-   NEW CHAT
-========================= */
+/* NEW CHAT */
 
-newChatBtn.addEventListener("click", () => {
+newChatBtn.addEventListener(
+"click",
+() => {
 
-    chat.innerHTML = "";
+chat.innerHTML = "";
 
-    const welcome =
-    document.getElementById(
-        "welcomeScreen"
-    );
+}
+);
 
-    if (welcome) {
-        welcome.style.display = "block";
-    }
+/* TYPE */
+
+function typeText(
+element,
+text
+){
+
+return new Promise(resolve => {
+
+let i = 0;
+
+stopGeneration = false;
+
+stopBtn.style.display =
+"block";
+
+function type(){
+
+if(stopGeneration){
+
+stopBtn.style.display =
+"none";
+
+resolve();
+
+return;
+
+}
+
+if(i > text.length){
+
+stopBtn.style.display =
+"none";
+
+resolve();
+
+return;
+
+}
+
+element.innerHTML =
+
+marked.parse(
+text.substring(0,i)
+)
+
++
+
+'<span class="typingCursor"></span>';
+
+hljs.highlightAll();
+
+i++;
+
+scrollBottom();
+
+setTimeout(type,2);
+
+}
+
+type();
 
 });
 
-/* =========================
-   MESSAGE RENDER
-========================= */
+}
 
-function renderMessage(
-    role,
-    text
-) {
+/* SEND */
 
-    const wrapper =
-    document.createElement("div");
+async function sendMessage(){
 
-    wrapper.className =
-    role === "user"
-    ? "message user"
-    : "message assistant";
+const message =
+msgInput.value.trim();
 
-    wrapper.innerHTML = `
-    <div class="avatar"></div>
-    <div class="message-content"></div>
-    `;
+if(!message) return;
 
-    const content =
-    wrapper.querySelector(
-        ".message-content"
-    );
+document.getElementById(
+"welcomeScreen"
+)?.remove();
 
-    if (
-        role === "assistant" &&
-        window.marked
-    ) {
+renderMessage(
+"user",
+message
+);
 
-        content.innerHTML =
-        marked.parse(text);
+msgInput.value = "";
+msgInput.style.height = "auto";
 
-    } else {
+showThinking();
 
-        content.textContent =
-        text;
+try{
 
-    }
+const response =
+await fetch(
+API + "/chat",
+{
+method:"POST",
+headers:{
+"Content-Type":
+"application/json"
+},
+body:JSON.stringify({
+message
+})
+}
+);
 
-    chat.appendChild(wrapper);
+const data =
+await response.json();
 
-    addCopyButtons();
+hideThinking();
 
-    scrollBottom();
+const content =
+renderMessage(
+"assistant",
+""
+);
 
-    return content;
+await typeText(
+content,
+data.reply
+);
+
+content.innerHTML =
+marked.parse(
+data.reply
+);
+
+hljs.highlightAll();
+
+chats.unshift({
+
+title:
+message.substring(0,40),
+
+messages:[
+
+{
+role:"user",
+content:message
+},
+
+{
+role:"assistant",
+content:data.reply
+}
+
+]
+
+});
+
+saveChats();
+renderHistory();
+
+}catch(err){
+
+hideThinking();
+
+renderMessage(
+"assistant",
+"Server Error."
+);
+
+console.error(err);
 
 }
 
-/* =========================
-   COPY BUTTONS
-========================= */
-
-function addCopyButtons() {
-
-    document
-    .querySelectorAll("pre")
-    .forEach(pre => {
-
-        if (
-            pre.querySelector(
-                ".copy-btn"
-            )
-        ) return;
-
-        const btn =
-        document.createElement(
-            "button"
-        );
-
-        btn.className =
-        "copy-btn";
-
-        btn.textContent =
-        "Copy";
-
-        btn.addEventListener(
-            "click",
-            async () => {
-
-                await navigator
-                .clipboard
-                .writeText(
-                    pre.innerText
-                );
-
-                btn.textContent =
-                "Copied";
-
-                setTimeout(() => {
-
-                    btn.textContent =
-                    "Copy";
-
-                }, 1500);
-
-            }
-        );
-
-        pre.appendChild(btn);
-
-    });
-
 }
 
-/* =========================
-   SCROLL
-========================= */
+/* STOP */
 
-function scrollBottom() {
+stopBtn.addEventListener(
+"click",
+() => {
 
-    chat.scrollTop =
-    chat.scrollHeight;
+stopGeneration = true;
 
-}
-
-/* =========================
-   THINKING
-========================= */
-
-function showThinking() {
-
-    thinkingBox.style.display =
-    "block";
+hideThinking();
 
 }
+);
 
-function hideThinking() {
-
-    thinkingBox.style.display =
-    "none";
-
-}
-
-/* =========================
-   TYPING ANIMATION
-========================= */
-
-function typeText(
-    element,
-    text
-) {
-
-    return new Promise(resolve => {
-
-        let i = 0;
-
-        element.innerHTML = "";
-
-        function type() {
-
-            if (i >= text.length) {
-
-                resolve();
-
-                return;
-
-            }
-
-            element.textContent +=
-            text.charAt(i);
-
-            i++;
-
-            scrollBottom();
-
-            setTimeout(
-                type,
-                8
-            );
-
-        }
-
-        type();
-
-    });
-
-}
-
-/* =========================
-   SEND MESSAGE
-========================= */
-
-async function sendMessage() {
-
-    const message =
-    msgInput.value.trim();
-
-    if (!message) return;
-
-    document
-    .getElementById(
-        "welcomeScreen"
-    )
-    ?.remove();
-
-    renderMessage(
-        "user",
-        message
-    );
-
-    msgInput.value = "";
-    msgInput.style.height = "auto";
-
-    showThinking();
-
-    try {
-
-        const response =
-        await fetch(
-            API + "/chat",
-            {
-                method: "POST",
-                headers: {
-                    "Content-Type":
-                    "application/json"
-                },
-                body:
-                JSON.stringify({
-                    message
-                })
-            }
-        );
-
-        const data =
-        await response.json();
-
-let reply = data.reply;
-
-const q = message.toLowerCase().trim();
-
-if (
-    q === "who are you" ||
-    q === "who r you" ||
-    q === "what are you"
-) {
-    reply = `
-# Morado AI
-
-I am Morado AI, an advanced AI assistant created by Morado.
-
-I can help with coding, mathematics, science, writing, research and problem solving.
-`;
-}
-
-if (q === "who created you") {
-    reply = "I was created by Morado.";
-}
-
-if (q === "what is your name") {
-    reply = "My name is Morado AI.";
-}
-
-if (q === "are you gemini") {
-    reply = "I am Morado AI.";
-}
-        hideThinking();
-
-        const wrapper =
-        document.createElement(
-            "div"
-        );
-
-        wrapper.className =
-        "message assistant";
-
-        wrapper.innerHTML = `
-        <div class="avatar"></div>
-        <div class="message-content"></div>
-        `;
-
-        chat.appendChild(wrapper);
-
-        const content =
-        wrapper.querySelector(
-            ".message-content"
-        );
-
-        await typeText(
-            content,
-            reply
-        );
-
-        content.innerHTML =
-        marked.parse(
-            reply
-        );
-
-        addCopyButtons();
-
-        scrollBottom();
-
-        chats.unshift({
-
-            title:
-            message.substring(
-                0,
-                40
-            ),
-
-            messages: [
-
-                {
-                    role:
-                    "user",
-
-                    content:
-                    message
-                },
-
-                {
-                    role:
-                    "assistant",
-
-                    content:
-                    reply
-                }
-
-            ]
-
-        });
-
-        if (
-            chats.length > 50
-        ) {
-            chats.pop();
-        }
-
-        saveChats();
-
-        renderHistory();
-
-    } catch (err) {
-
-        hideThinking();
-
-        renderMessage(
-            "assistant",
-            "Server Error."
-        );
-
-        console.error(err);
-
-    }
-
-}
-
-/* =========================
-   SEND BUTTON
-========================= */
+/* SEND */
 
 sendBtn.addEventListener(
-    "click",
-    sendMessage
+"click",
+sendMessage
 );
 
-/* =========================
-   ENTER TO SEND
-========================= */
+/* ENTER */
 
 msgInput.addEventListener(
-    "keydown",
-    e => {
+"keydown",
+e => {
 
-        if (
-            e.key === "Enter" &&
-            !e.shiftKey
-        ) {
+if(
+e.key === "Enter"
+&& !e.shiftKey
+){
 
-            e.preventDefault();
+e.preventDefault();
 
-            sendMessage();
+sendMessage();
 
-        }
+}
 
-    }
+}
 );
 
-/* =========================
-   SHORTCUTS
-========================= */
+/* SEARCH */
 
-document.addEventListener(
-    "keydown",
-    e => {
+document.getElementById(
+"historySearch"
+).addEventListener(
+"input",
+e => {
 
-        if (
-            e.ctrlKey &&
-            e.key.toLowerCase()
-            === "k"
-        ) {
+const value =
+e.target.value
+.toLowerCase();
 
-            e.preventDefault();
+document
+.querySelectorAll(
+".chat-history-item"
+)
+.forEach(item => {
 
-            msgInput.focus();
+item.style.display =
+item.textContent
+.toLowerCase()
+.includes(value)
+? "block"
+: "none";
 
-        }
+});
 
-        if (
-            e.ctrlKey &&
-            e.key.toLowerCase()
-            === "n"
-        ) {
-
-            e.preventDefault();
-
-            newChatBtn.click();
-
-        }
-
-    }
+}
 );
 
-/* =========================
-   SUGGESTIONS
-========================= */
+/* SUGGESTIONS */
 
 document
 .querySelectorAll(
@@ -612,17 +592,16 @@ document
 )
 .forEach(btn => {
 
-    btn.addEventListener(
-        "click",
-        () => {
+btn.addEventListener(
+"click",
+() => {
 
-            msgInput.value =
-            btn.textContent.trim();
+msgInput.value =
+btn.textContent;
 
-            sendMessage();
+sendMessage();
 
-        }
-    );
+}
+);
 
 });
-
