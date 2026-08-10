@@ -554,7 +554,12 @@ opacity:1;
 /* INPUT */
 
 #inputArea{
-padding:18px;
+width:100%;
+padding:14px 18px 18px;
+background:var(--bg);
+flex-shrink:0;
+position:relative;
+z-index:50;
 }
 
 #inputWrapper{
